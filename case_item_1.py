@@ -2,11 +2,8 @@ import json
 import requests
 import time
 
-
 class User:
 
-
-    # выводим атрибуты пользователя
     def __init__(self, id ):
         self.user_id = id
         self.friend_leng = 0 # число друзей
@@ -18,7 +15,7 @@ class User:
         self.unique_groups_information = [] # информация уникальных групп
         self.token = 'f521c678206906cf2f8a5d179f463407449a616469bddb48c7ebd1eab8b99a45b47c242adf63cef2b6c77'
 
-    # выводим список друзей
+    # получаем список друзей
     def list_friend(self):
         response = requests.get('https://api.vk.com/method/friends.get',
                                 params={
@@ -28,24 +25,31 @@ class User:
                                     'order': 'name',
                                     'v': self.version
                                 })
-        self.friends_id = response.json()
-        self.friend_leng = len(self.friends_id['response']['items'])
+        try:
+            self.friends_id = response.json()
+            self.friend_leng = len(self.friends_id['response']['items'])
+            #print(f'Список друзей {self.friends_id["response"]["items"]}')
 
-        print(f'Список друзей {self.friends_id["response"]["items"]}')
+        except KeyError:
+            print('Ошибка с определение друзей пользователя\n'
+                  'Проверьте праквильность введенного id пользователя или токен')
+            raise SystemExit(1)
 
+    def conclusion_work(self):
+        if self.number <= self.friend_leng:
+            percentage = float('{:.2f}'.format(self.number * 100 / self.friend_leng))
+            print(f'{self.number} / {self.friend_leng} ({percentage} %)')
+            self.number += 1
 
-    #      выводим список    групп     друзей
+    # получаем список    групп     друзей
     def list_groups_friends(self):
 
+        print('Идет запись групп друзей')
         for friends_id in self.friends_id['response']['items']:
 
             # отображение обработанных друзей
-            if self.number <= self.friend_leng:
-                percentage = float('{:.2f}'.format(self.number * 100 / self.friend_leng))
-                print(f'{self.number} / {self.friend_leng} ({percentage} %)')
-                self.number += 1
+            self.conclusion_work()
 
-            print('Идет запись групп друзей')
             response_one = requests.get('https://api.vk.com/method/users.getSubscriptions',
                                         params={
                                             'access_token': self.token,
@@ -71,7 +75,7 @@ class User:
 
 
 
-    # выводим список групп пользователя
+    # получаем список групп пользователя
     def list_groups_maim(self):
         response_main = requests.get('https://api.vk.com/method/users.getSubscriptions',
                                      params={
@@ -81,7 +85,13 @@ class User:
                                          'v': self.version
                                      })
 
-        self.main_groups = response_main.json()
+
+        try:
+            self.main_groups = response_main.json()
+        except json.decoder.JSONDecodeError:
+            print('Произошла ошибка при формировании групп пользователя')
+            raise SystemExit(1)
+
 
     # определение групп которые есть только у основного пользователя
     def unique_pool(self):
@@ -111,15 +121,17 @@ class User:
                 json.dump(i, file)
 
 
-unit_1 = User(108889917)
-# выводим информацию о друзьях
-unit_1.list_friend()
-# записываем все группы друзей в общий список (без повторов)
-unit_1.list_groups_friends()
-# записываем список групп основного пользователя
-unit_1.list_groups_maim()
-# определяем группы, которых нет у друзей
-unit_1.unique_pool()
-# записываем информацию в отдельный файл
-unit_1.json_write()
-print(f'Основная информация о группах {unit_1.unique_groups_information}')
+
+if __name__ == "__main__":
+    unit_1 = User(67465626)
+    # записываем id друзей
+    unit_1.list_friend()
+    # записываем все группы друзей в общий список (без повторов)
+    unit_1.list_groups_friends()
+    # записываем список групп основного пользователя
+    unit_1.list_groups_maim()
+    # определяем группы, которых нет у друзей
+    unit_1.unique_pool()
+    # записываем информацию в отдельный файл
+    unit_1.json_write()
+    print(f'Основная информация о группах {unit_1.unique_groups_information}')
