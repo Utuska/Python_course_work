@@ -21,7 +21,7 @@ class User:
                                 params={
                                     'access_token': self.token,
                                     'user_id': self.user_id,
-                                    'count': 200,
+                                    'count': 300,
                                     'order': 'name',
                                     'v': self.version
                                 })
@@ -118,7 +118,7 @@ class User:
     def json_write(self):
         with open("information_groups.json", "w", encoding="utf-8") as file:
             for i in self.unique_groups_information:
-                json.dump(i, file)
+                json.dump(i, file, sort_keys=False, indent=4, ensure_ascii=False, separators=(',', ': '))
 
 
 
@@ -135,3 +135,10 @@ if __name__ == "__main__":
     # записываем информацию в отдельный файл
     unit_1.json_write()
     print(f'Основная информация о группах {unit_1.unique_groups_information}')
+
+
+
+
+
+
+
